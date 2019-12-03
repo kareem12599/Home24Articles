@@ -1,5 +1,6 @@
 package com.example.articles.data.articles
 
+import com.example.articles.dagger.FeatureScope
 import com.example.articles.data.Result
 import com.example.articles.data.api.ArticlesService
 import com.example.articles.data.model.Articles
@@ -7,18 +8,20 @@ import com.example.articles.util.safeApiCall
 import java.io.IOException
 import javax.inject.Inject
 
+
 class ArticlesRemoteDataSource @Inject constructor(private val service: ArticlesService) {
     suspend fun getArticles() = safeApiCall(
-        call = {requestGetArticles()},
+        call = {
+            requestGetArticles()},
         errorMessage = "Error getting articles"
     )
 
-    private suspend fun requestGetArticles(): Result<Articles>{
+    private suspend fun requestGetArticles(): Result<MutableList<Articles>>{
         val response  = service.getArticles()
         if (response.isSuccessful) {
             val body = response.body()
             if (body != null) {
-                return Result.Success(body)
+                return Result.Success(body._embedded.articles)
             }
         }
 

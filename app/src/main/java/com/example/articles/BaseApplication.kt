@@ -13,7 +13,7 @@ class BaseApplication : Application() {
     }
     companion object{
         fun appComponent(context: Context) =
-            ((context.applicationContext) as BaseApplication).applicationComponent
+            (context.applicationContext as BaseApplication).applicationComponent
     }
 
 }

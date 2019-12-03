@@ -1,30 +1,39 @@
 package com.example.articles.dagger
 
-import android.content.Context
+import android.app.Activity
+import android.net.ConnectivityManager
+import androidx.core.content.getSystemService
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.example.articles.data.articles.ArticlesRepository
-import com.example.articles.ui.main.articles.ArticlesFragment
-import com.example.articles.ui.main.articles.ArticlesViewModel
+import com.example.articles.ui.articles.ArticlesViewModel
 import com.example.articles.util.ArticlesViewModelFactory
-import com.example.articles.util.CoroutinesDispatcherProvider
+import com.example.articles.util.ConnectivityChecker
 import dagger.Module
 import dagger.Provides
 
 
-@Module(subcomponents = [ArticleComponent::class])
-class ArticlesModule(private  val fragment: ArticlesFragment) {
+@Module
+class ArticlesModule(private val fragment: Fragment) {
     @FeatureScope
     @Provides
-    fun provideArticlesViewModelFactory(articlesRepository: ArticlesRepository,
-                                        dispatcherProvider: CoroutinesDispatcherProvider,
-                                        context: Context
-    ):ArticlesViewModelFactory{
-        return ArticlesViewModelFactory(articlesRepository, dispatcherProvider, context)
+    fun provideArticlesViewModelFactory(
+        articlesRepository: ArticlesRepository
+    ): ArticlesViewModelFactory {
+        return ArticlesViewModelFactory(articlesRepository)
     }
-    @FeatureScope
 
+    @FeatureScope
     @Provides
     fun provideArticlesViewModel(articlesViewModelFactory: ArticlesViewModelFactory)
-            :ArticlesViewModel= ViewModelProviders.of(fragment, articlesViewModelFactory).get(ArticlesViewModel::class.java)
+            : ArticlesViewModel =
+        ViewModelProviders.of(fragment, articlesViewModelFactory).get(ArticlesViewModel::class.java)
+
+    @FeatureScope
+    @Provides
+    fun connectivityChecker(): ConnectivityChecker {
+        val connectivityManager = fragment.requireActivity().getSystemService<ConnectivityManager>()
+        return ConnectivityChecker(connectivityManager!!)
+    }
 
 }

@@ -1,5 +1,8 @@
 package com.example.articles.data.articles
 
-class ArticlesLocalDataSource{
+import javax.inject.Inject
+
+
+class ArticlesLocalDataSource @Inject constructor(){
 
 }

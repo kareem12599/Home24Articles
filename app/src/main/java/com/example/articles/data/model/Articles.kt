@@ -5,7 +5,7 @@ data class Articles (
     val sku : Int,
     val title : String,
     val description : String,
-    val prevPrice : String,
+    val prevPrice : Price,
     val manufacturePrice : String,
     val price : Price,
     val media : List<Media>,
