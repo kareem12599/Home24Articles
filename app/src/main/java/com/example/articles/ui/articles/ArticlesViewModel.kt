@@ -7,11 +7,16 @@ import com.example.articles.data.Result
 import com.example.articles.data.articles.ArticlesRepository
 import com.example.articles.data.model.ArticleUIModel
 import com.example.articles.data.model.Articles
+import com.example.articles.util.CoroutinesDispatcherProvider
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class ArticlesViewModel(
-    private val articlesRepository: ArticlesRepository
+    private val articlesRepository: ArticlesRepository,
+    private val dispatcher: CoroutinesDispatcherProvider
 ) : ViewModel() {
+
+
     private val _articles = MutableLiveData<List<ArticleUIModel>?>()
     val articles: LiveData<List<ArticleUIModel>?>
         get() = _articles
@@ -25,21 +30,26 @@ class ArticlesViewModel(
         get() = _errorMessage
 
 
-    fun start() = launchDataLoad {
-        articlesRepository.getArticles()
-    }
+    fun start() = launchDataLoad({ articlesRepository.getArticles() },
+        { articlesRepository.getLocalArticles() })
 
-    private fun launchDataLoad(block: suspend () -> Result<List<Articles>>): Unit {
-        viewModelScope.launch {
 
-            when (val result = block()) {
+    private fun launchDataLoad(
+        block1: suspend () -> Result<List<Articles>>,
+        block2: suspend () -> List<ArticleUIModel>
+    ): Unit {
+        viewModelScope.launch(dispatcher.io) {
+            var savedArticles = block2()
+            when (val result = block1()) {
                 is Result.Success -> {
                     val result = result.data
-                    updateSourceUIModel(result)
+                    updateSourceUIModel(result, savedArticles)
                 }
                 is Result.Error -> {
-                    _articles.value = emptyList()
-                    _errorMessage.value = result.toString()
+                    viewModelScope.launch(dispatcher.main) {
+                        _articles.value = emptyList()
+                        _errorMessage.value = result.toString()
+                    }
                 }
             }
 
@@ -47,15 +57,47 @@ class ArticlesViewModel(
     }
 
 
-    private fun updateSourceUIModel(result: List<Articles>) {
-        val articles = result.toMutableList()
-        _articles.value = articles.map {
-            ArticleUIModel(imageUri = it.media[0].uri,
-                likeCounter = 0,
-                title = it.title,
-                onLikeBtnClicked = { position, article -> setCount(position, article) },
-                onDisLikeBtnClicked = { position, article -> resetCount(position, article) }
-            )
+    private fun updateSourceUIModel(result: List<Articles>, localData: List<ArticleUIModel>) {
+
+        viewModelScope.launch(dispatcher.main) {
+
+            when {
+                localData.isNotEmpty() && localData.size == result.size ->
+                    _articles.value = result.zip(localData)
+                        .filter { it.first.title == it.second.title }
+                        .map {
+                            ArticleUIModel(
+                                imageUri = it.first.media[0].uri,
+                                title = it.first.title,
+                                likeCounter = it.second.likeCounter,
+                                onLikeBtnClicked = { position, article ->
+                                    setCount(
+                                        position,
+                                        article
+                                    )
+                                },
+                                onDisLikeBtnClicked = { position, article ->
+                                    resetCount(
+                                        position,
+                                        article
+                                    )
+                                }
+
+                            )
+                        }
+                else -> _articles.value = result.map {
+                    ArticleUIModel(
+                        imageUri = it.media[0].uri,
+                        title = it.title,
+                        likeCounter = 0,
+                        onLikeBtnClicked = { position, article -> setCount(position, article) },
+                        onDisLikeBtnClicked = { position, article -> resetCount(position, article) }
+
+                    )
+                }
+            }
+
+
         }
     }
 
@@ -82,6 +124,20 @@ class ArticlesViewModel(
 
     fun updateCount(position: Int) {
         _count.value = articles.value?.get(position)?.let { it.likeCounter }
+    }
+
+    fun saveArticles(articles: MutableList<ArticleUIModel>) {
+        viewModelScope.launch(dispatcher.io) {
+            articlesRepository.clearData()
+            with(articles) {
+
+                forEach { article ->
+
+                    articlesRepository.saveArticle(article)
+                }
+            }
+        }
+
     }
 }
 

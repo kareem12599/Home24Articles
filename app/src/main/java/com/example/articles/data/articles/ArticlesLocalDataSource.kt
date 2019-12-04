@@ -10,6 +10,12 @@ class ArticlesLocalDataSource @Inject constructor(val dao: ArticleDao){
        return  dao.getArticles()
     }
 
-    suspend fun insertArticle(articleUIModel: ArticleUIModel)= dao.insert(articleUIModel)
+    suspend fun insertArticle(articleUIModel: ArticleUIModel)=
+        dao.insert(articleUIModel)
+
+    suspend fun clear() {
+        dao.deleteAll()
+    }
+
 
 }

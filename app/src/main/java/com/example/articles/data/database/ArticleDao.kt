@@ -12,4 +12,6 @@ interface ArticleDao {
     suspend fun getArticles():List<ArticleUIModel>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(articleUIModel: ArticleUIModel)
+    @Query("delete from articleuimodel")
+    suspend fun deleteAll()
 }

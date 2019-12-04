@@ -17,13 +17,8 @@ class ArticlesRepository @Inject constructor(
 
 
     suspend fun getArticles(): Result<MutableList<Articles>> {
-        val articles = dataSource.getArticles()
-        if (articles is Result.Success)
-            compareWithSavedData(articles)
 
-
-
-        return articles
+        return dataSource.getArticles()
 
     }
 
@@ -41,10 +36,38 @@ class ArticlesRepository @Inject constructor(
         val savedArticles:List<ArticleUIModel> = withContext(dispatcherProvider.io){
             localDataSource.getArticles()
         }
+
+       val d =  articles.zip(savedArticles).filter { it.first.title == it.second.title }
+           .map {
+               ArticleUIModel(
+                   imageUri = it.second.imageUri,
+                   title = it.second.title,
+                   likeCounter =  it.second.likeCounter,
+                   onDisLikeBtnClicked = null ,
+                   onLikeBtnClicked = null
+               )
+       }
+
+
         
 
 
 
+
+    }
+
+    suspend fun saveArticle(article: ArticleUIModel) {
+        localDataSource.insertArticle(article)
+
+    }
+
+    suspend fun getLocalArticles():  List<ArticleUIModel> {
+        return localDataSource.getArticles()
+
+    }
+
+    suspend fun clearData() {
+        localDataSource.clear()
 
     }
 

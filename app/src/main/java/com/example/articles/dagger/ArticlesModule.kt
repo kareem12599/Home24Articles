@@ -12,6 +12,7 @@ import com.example.articles.data.database.ArticleDatabase
 import com.example.articles.ui.articles.ArticlesViewModel
 import com.example.articles.util.ArticlesViewModelFactory
 import com.example.articles.util.ConnectivityChecker
+import com.example.articles.util.CoroutinesDispatcherProvider
 import dagger.Module
 import dagger.Provides
 
@@ -21,9 +22,9 @@ class ArticlesModule(private val fragment: Fragment) {
     @FeatureScope
     @Provides
     fun provideArticlesViewModelFactory(
-        articlesRepository: ArticlesRepository
+        articlesRepository: ArticlesRepository, coroutinesDispatcherProvider: CoroutinesDispatcherProvider
     ): ArticlesViewModelFactory {
-        return ArticlesViewModelFactory(articlesRepository)
+        return ArticlesViewModelFactory(articlesRepository, coroutinesDispatcherProvider)
     }
     @Provides
     fun provideContext(): Context = fragment.context!!

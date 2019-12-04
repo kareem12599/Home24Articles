@@ -8,13 +8,14 @@ import androidx.room.PrimaryKey
 data class ArticleUIModel(
     var imageUri: String?,
     var likeCounter: Int,
-    val title: String,
+    var title: String?,
     @Ignore
-    var onLikeBtnClicked: ((postion: Int, article: ArticleUIModel) -> Unit)?,
+    var onLikeBtnClicked: ((position: Int, article: ArticleUIModel) -> Unit)?,
     @Ignore
-    var onDisLikeBtnClicked: ((postion: Int, article: ArticleUIModel) -> Unit)?
+    var onDisLikeBtnClicked: ((position: Int, article: ArticleUIModel) -> Unit)?
 
 ){
     @PrimaryKey(autoGenerate = true)
     var _id:Int = 0
+    constructor():this(null, 0 , null, null, null)
 }

@@ -49,6 +49,7 @@ class ArticlesViewHolder(private  val rootView: View) : RecyclerView.ViewHolder(
                 rootView.articleTitle.text = it.title
              else
                 rootView.articleTitle.visibility = INVISIBLE
+            rootView.reviewText.text  = "${it.likeCounter} /10"
         }
 
     }

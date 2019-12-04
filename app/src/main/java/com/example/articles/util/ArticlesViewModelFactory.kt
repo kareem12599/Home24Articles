@@ -7,13 +7,14 @@ import com.example.articles.ui.articles.ArticlesViewModel
 import java.lang.IllegalArgumentException
 
 class ArticlesViewModelFactory(
-    private val articlesRepository: ArticlesRepository
+    private val articlesRepository: ArticlesRepository,
+    private val dispatcherProvider: CoroutinesDispatcherProvider
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass != ArticlesViewModel::class.java) {
             throw IllegalArgumentException("Unknown viewmodel class")
         }
-        return ArticlesViewModel(articlesRepository) as T
+        return ArticlesViewModel(articlesRepository, dispatcherProvider) as T
     }
 }
