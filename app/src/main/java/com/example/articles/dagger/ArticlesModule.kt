@@ -1,14 +1,18 @@
 package com.example.articles.dagger
 
 import android.app.Activity
+import android.content.Context
 import android.net.ConnectivityManager
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.example.articles.data.articles.ArticlesRepository
+import com.example.articles.data.database.ArticleDao
+import com.example.articles.data.database.ArticleDatabase
 import com.example.articles.ui.articles.ArticlesViewModel
 import com.example.articles.util.ArticlesViewModelFactory
 import com.example.articles.util.ConnectivityChecker
+import com.example.articles.util.CoroutinesDispatcherProvider
 import dagger.Module
 import dagger.Provides
 
@@ -18,10 +22,13 @@ class ArticlesModule(private val fragment: Fragment) {
     @FeatureScope
     @Provides
     fun provideArticlesViewModelFactory(
-        articlesRepository: ArticlesRepository
+        articlesRepository: ArticlesRepository, coroutinesDispatcherProvider: CoroutinesDispatcherProvider
     ): ArticlesViewModelFactory {
-        return ArticlesViewModelFactory(articlesRepository)
+        return ArticlesViewModelFactory(articlesRepository, coroutinesDispatcherProvider)
     }
+    @Provides
+    fun provideContext(): Context = fragment.context!!
+
 
     @FeatureScope
     @Provides
@@ -34,6 +41,12 @@ class ArticlesModule(private val fragment: Fragment) {
     fun connectivityChecker(): ConnectivityChecker {
         val connectivityManager = fragment.requireActivity().getSystemService<ConnectivityManager>()
         return ConnectivityChecker(connectivityManager!!)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideLoggedInUserDao(context: Context): ArticleDao {
+        return ArticleDatabase.getInstance(context).articleDao()
     }
 
 }

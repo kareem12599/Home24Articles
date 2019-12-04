@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,9 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.articles.R
 import com.example.articles.data.model.ArticleUIModel
 import com.example.articles.ui.articles.ArticlesViewModel
+import com.example.articles.util.CoroutinesDispatcherProvider
 import com.example.articles.util.inject
 import com.example.articles.util.setUpActionBar
 import kotlinx.android.synthetic.main.review_fragment.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ReviewFragment : Fragment() {
@@ -23,6 +28,8 @@ class ReviewFragment : Fragment() {
     lateinit var viewModel: ArticlesViewModel
     private lateinit var adapter: ArticlesReviewListAdapter
     private var articles: MutableList<ArticleUIModel>? = null
+    @Inject
+    lateinit var dispatcherProvider: CoroutinesDispatcherProvider
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,8 +47,13 @@ class ReviewFragment : Fragment() {
         initListeners()
         setUpAdapter()
 
-        viewModel.start()
-        progress.visibility = View.VISIBLE
+       lifecycleScope.launch(dispatcherProvider.main){
+           progress.visibility = View.VISIBLE
+           delay(500)
+           viewModel.start()
+       }
+
+
 
         viewModel.articles.observe(this, Observer { articles ->
             progress.visibility = View.GONE

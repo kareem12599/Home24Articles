@@ -46,6 +46,9 @@ class ArticlesFragment : Fragment(), ViewPager.OnPageChangeListener {
 
 
         reviewButton.setOnClickListener {
+
+          viewModel.saveArticles(articles)
+
             it.findNavController().navigate(R.id.action_articlesFragment_to_reviewFragment)
         }
     }
